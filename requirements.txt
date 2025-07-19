@@ -2,3 +2,5 @@ pandas
 selenium
 webdriver-manager
 prophet
+fastapi
+uvicorn

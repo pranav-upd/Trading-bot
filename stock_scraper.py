@@ -12,41 +12,23 @@ from prophet import Prophet
 # This will automatically download the correct driver for your Chrome version
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
-# Navigate to the website (replace with the actual URL of the stock exchange)
-# For demonstration, we'll use a placeholder.
-# A good target would be a historical data page for a specific stock on the NSE or BSE website.
-driver.get("https://www.example.com")
+# Navigate to the local FastAPI server
+driver.get("http://127.0.0.1:8000")
 
-# --- Data Scraping (Placeholder) ---
+# --- Data Scraping ---
 
-# This is where you would add your Selenium code to scrape the data.
-# You'll need to identify the HTML elements containing the data you want.
-# For example, you might look for a table with historical stock prices.
+# Scrape data from the FastAPI server
+data = []
+for _ in range(100): # Scrape 100 data points
+    price_string = driver.find_element(By.TAG_NAME, "body").text
+    price = float(price_string.split(":")[1].strip())
+    data.append({
+        'ds': pd.to_datetime('today').normalize() + pd.to_timedelta(_, unit='D'),
+        'y': price
+    })
+    driver.refresh()
 
-# Example (replace with actual selectors):
-# try:
-#     table = driver.find_element(By.ID, "historical-data-table")
-#     rows = table.find_elements(By.TAG_NAME, "tr")
-#
-#     data = []
-#     for row in rows[1:]: # Skip header row
-#         cols = row.find_elements(By.TAG_NAME, "td")
-#         if len(cols) == 7: # Assuming a table with 7 columns (Date, Open, High, Low, Close, Adj Close, Volume)
-#             data.append({
-#                 'ds': cols[0].text, # Date (needs to be in YYYY-MM-DD format for Prophet)
-#                 'y': float(cols[4].text.replace(',', '')) # Closing price
-#             })
-# except Exception as e:
-#     print(f"An error occurred during scraping: {e}")
-
-
-# For demonstration purposes, we'll create a dummy dataframe.
-# In a real application, this would be populated with the scraped data.
-scraped_data = {
-    'ds': pd.to_datetime(['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05']),
-    'y': [100, 102, 105, 103, 106]
-}
-df = pd.DataFrame(scraped_data)
+df = pd.DataFrame(data)
 
 # Close the browser
 driver.quit()
